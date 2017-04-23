@@ -41,15 +41,15 @@ def parseVectorAndDropLastColumn(line):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         print("Usage: kmeans <file> <k>", file=sys.stderr)
         exit(-1)
     sc = SparkContext(appName="KMeans")
-    lines = sc.textFile(sys.argv[1])
+    lines = sc.textFile('../data136.csv')
     data = lines.map(parseVectorAndDropLastColumn)
-    k = int(sys.argv[2])
+    k = int(2)
     model = KMeans.train(data, k)
-    with open(sys.argv[1]) as file:
+    with open('../data136.csv') as file:
        rows=file.readlines();
 
     rowOfDataPoints=[]
@@ -58,23 +58,30 @@ if __name__ == "__main__":
     for row in rows:
        row=row.rstrip("\n")
 
-       singleOutputDataPoint=[]
-       #adding the column vectors
+       #array of each row of output file
+       rowsInOutputFile=[]
+
+       #adding the feature vectors
        for x in range(len(row.split(','))-1):
-          singleOutputDataPoint.append(float(row.split(',')[x]))
+          rowsInOutputFile.append(float(row.split(',')[x]))
 
-       #arrayOfpredictedClassValue
-       arrayOfPredictedValues.append(float(model.predict(array(singleOutputDataPoint))))
+       #predicted class value for each input datapoint
+       predictedclassValue= float(model.predict(array(rowsInOutputFile)))
 
-       #adding predicted class value
-       singleOutputDataPoint.append(float(model.predict(array(singleOutputDataPoint))))
+       #adding predicted class value in the outputfile
+       rowsInOutputFile.append(predictedclassValue)
 
-       #arrayOfActual class Value
+       # adding real class value in the outputfile
+       rowsInOutputFile.append(float(row.split(',')[-1]))
+
+       #Inserting the predicted ClassValue
+       arrayOfPredictedValues.append(predictedclassValue)
+
+       #Inserting the Actual class Value
        arrayOfActualValues.append(float(row.split(',')[-1]))
 
-       # adding real class value
-       singleOutputDataPoint.append(float(row.split(',')[-1]))
-       rowOfDataPoints.append(singleOutputDataPoint)
+       #arrayOfActual class Value
+       rowOfDataPoints.append(rowsInOutputFile)
 
     a = np.asarray(rowOfDataPoints)
     np.savetxt("output.csv", a, delimiter=",",fmt="%1.3f")
@@ -107,20 +114,10 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
     #accuracyincluster0=numberOfCorrectMappingincluster0/totalnumberofitemsincluster0;
     #accuracyincluster1=numberOfCorrectMappingincluster1/totalnumberofitemsincluster1;
     ##print(accuracyincluster0)
     #print(accuracyincluster1)
-
-
-
-
-
 
     '''
     print("-----")
